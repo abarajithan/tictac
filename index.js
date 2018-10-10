@@ -21,6 +21,13 @@
 const grid = [];
 const GRID_LENGTH = 3;
 let turn = 'X';
+let value = 1;
+let xcol = [];
+let xrow = [];
+let ycol = [];
+let yrow = [];
+let count = 0;
+const testCondition = "0,1,2";
 
 function initializeGrid() {
     for (let colIdx = 0;colIdx < GRID_LENGTH; colIdx++) {
@@ -29,6 +36,122 @@ function initializeGrid() {
             tempArray.push(0);
         }
         grid.push(tempArray);
+    }
+}
+
+function getUniqueValues(array){
+    return array.filter(function(obj, index, arg)
+    { 
+        return arg.indexOf(obj) === index; 
+    });
+}
+
+function diagonalCheck(gridValue){
+    let diagonal = true;
+    for(let i=0;i<GRID_LENGTH;i++){
+        if(grid[i][i] != gridValue){
+            diagonal = false;
+            break;
+        }
+    }
+    if(!diagonal){
+        diagonal = true;
+        for(let i=0,j= GRID_LENGTH -1;i<GRID_LENGTH,j >=0;i++, j--){
+            if(grid[i][j] != gridValue){
+                diagonal = false;
+                break;
+            }
+        }
+    }
+    return diagonal;   
+}
+
+function showMessage(message){
+    document.getElementById("message").innerHTML = message;
+    document.getElementById("message").classList.add("show");
+    document.getElementById("refresh-btn").classList.add("show");
+    document.getElementsByClassName("parentTop")[0].classList.add('opaque');
+}
+
+
+function findWinner(colIdx,rowIdx,gridValue, count){
+    let winnerDisplay = false;
+    if(gridValue === 1){
+        xcol.push(colIdx);
+        xrow.push(rowIdx);
+        if(xcol.length >= 3 || xrow.length >= 3){
+           let  uniqueCol = getUniqueValues(xcol);
+           let  uniqueRow = getUniqueValues(xrow);
+            if(
+                (
+                    uniqueCol.sort().join().includes(testCondition) && 
+                    (
+                        xrow.sort().join().includes("0,0,0")||
+                        xrow.sort().join().includes("1,1,1")||
+                        xrow.sort().join().includes("2,2,2")
+                    )
+                )
+                || 
+                ( 
+                    uniqueRow.sort().join().includes(testCondition) &&
+                    (
+                        xcol.sort().join().includes("0,0,0")||
+                        xcol.sort().join().includes("1,1,1")||
+                        xcol.sort().join().includes("2,2,2")
+                    )
+                )
+            )
+            {
+                showMessage("X is the Winner");
+                winnerDisplay = true;
+            }
+            else{
+                if(diagonalCheck(gridValue)){
+                    showMessage("X is the Winner");
+                    winnerDisplay = true;
+                }
+            }
+        }
+    }
+    else{
+        ycol.push(colIdx);
+        yrow.push(rowIdx);
+        if(ycol.length >= 3 || yrow.length >= 3){
+            let  uniqueCol = getUniqueValues(ycol);
+            let  uniqueRow = getUniqueValues(yrow);
+            if(
+                (
+                    uniqueCol.sort().join().includes(testCondition) && 
+                    (
+                        yrow.sort().join().includes("0,0,0")||
+                        yrow.sort().join().includes("1,1,1")||
+                        yrow.sort().join().includes("2,2,2")
+                    )
+                )
+                || 
+                ( 
+                    uniqueRow.sort().join().includes(testCondition) &&
+                    (
+                        ycol.sort().join().includes("0,0,0")||
+                        ycol.sort().join().includes("1,1,1")||
+                        ycol.sort().join().includes("2,2,2")
+                    )
+                )
+            )
+            {
+                showMessage("O is the Winner");
+                winnerDisplay = true;
+            }
+            else{
+                if(diagonalCheck(gridValue)){
+                    showMessage("O is the Winner");
+                    winnerDisplay = true;
+                }
+            }
+        }
+    }
+    if(count == 9 && !winnerDisplay){
+        showMessage("Winner can't be determined");
     }
 }
 
@@ -74,10 +197,18 @@ function renderMainGrid() {
 function onBoxClick() {
     var rowIdx = this.getAttribute("rowIdx");
     var colIdx = this.getAttribute("colIdx");
-    let newValue = 1;
+    let newValue = value;
     grid[colIdx][rowIdx] = newValue;
     renderMainGrid();
     addClickHandlers();
+    count++;
+    findWinner(colIdx,rowIdx,newValue,count);
+    if(value == 1){
+        value = 2;
+    }
+    else{
+        value = 1;
+    }
 }
 
 function addClickHandlers() {
